@@ -156,6 +156,8 @@ io.on('connection', (socket) => {
       round: room.round,
       maxRounds: room.maxRounds,
       hostId: room.hostId,
+      category: room.currentCategory,
+      templates: room.currentTemplates,
     });
 
     socket.to(room.code).emit('player-joined', { players: _publicPlayers(room) });
@@ -208,18 +210,47 @@ io.on('connection', (socket) => {
     if (result.error) return socket.emit('error', { message: result.error });
   });
 
-  // ── Submit vote ──────────────────────────────────────────────────────────
+  // ── Submit vote ───────────────────────────────────────────────────────────────
   socket.on('submit-vote', (payload) => {
-    const roomCode  = sanitizeRoomCode(payload?.roomCode);
-    const playerId  = sanitizePlayerId(payload?.playerId);
-    const voteIndex = Number(payload?.voteIndex);
+    const roomCode   = sanitizeRoomCode(payload?.roomCode);
+    const playerId   = sanitizePlayerId(payload?.playerId);
+    const voteIndex  = Number(payload?.voteIndex);
+    const confidence = ['sure', 'risky'].includes(payload?.confidence) ? payload.confidence : null;
 
-    if (!roomCode || !playerId || ![0, 1, 2].includes(voteIndex)) {
+    if (!roomCode || !playerId || ![0, 1, 2].includes(voteIndex) || !confidence) {
       return socket.emit('error', { message: 'Invalid vote payload.' });
     }
 
-    const result = submitVote(roomCode, playerId, voteIndex, io);
+    const result = submitVote(roomCode, playerId, voteIndex, confidence, io);
     if (result.error) return socket.emit('error', { message: result.error });
+  });
+
+  // ── Typing indicator (relay only — no state stored) ──────────────────────────
+  socket.on('typing-update', (payload) => {
+    const roomCode = sanitizeRoomCode(payload?.roomCode);
+    const playerId = sanitizePlayerId(payload?.playerId);
+    if (!roomCode || !playerId) return;
+
+    const room = getRoom(roomCode);
+    if (!room || room.currentSubjectId !== playerId) return; // only the Subject may emit this
+
+    const subject = room.players.find(p => p.id === playerId);
+    // Relay to everyone else in the room (socket.to excludes the sender)
+    socket.to(roomCode).emit('subject-typing', {
+      fieldIndex: Math.min(2, Math.max(0, Number(payload.fieldIndex) || 0)),
+      charCount:  Math.min(200, Math.max(0, Number(payload.charCount) || 0)),
+      nickname:   subject?.nickname ?? 'Subject',
+      ts:         Date.now(),
+    });
+  });
+
+  // ── Emoji reactions (relay only — purely cosmetic) ───────────────────────────
+  const ALLOWED_REACTIONS = new Set(['\uD83D\uDC40', '\uD83E\uDD2F', '\uD83D\uDE02', '\uD83D\uDE31', '\uD83E\uDEE1']);
+  socket.on('send-reaction', (payload) => {
+    const roomCode = sanitizeRoomCode(payload?.roomCode);
+    const emoji    = typeof payload?.emoji === 'string' ? payload.emoji : '';
+    if (!roomCode || !ALLOWED_REACTIONS.has(emoji)) return;
+    socket.to(roomCode).emit('reaction-burst', { emoji });
   });
 
   // ── Advance round (host manual trigger from reveal screen) ───────────────

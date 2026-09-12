@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import Countdown from './Countdown.jsx';
 
 /**
@@ -6,7 +7,16 @@ import Countdown from './Countdown.jsx';
  *  - The subject player during voting phase (isSubjectWaiting=true)
  */
 export default function Waiting({ gs, isSubjectWaiting = false }) {
-  const { subjectNickname, deadline, round, maxRounds, category } = gs;
+  const { subjectNickname, deadline, round, maxRounds, category, typingInfo } = gs;
+
+  // After 4 s of no typing events, fall back to a generic message
+  const [typingStale, setTypingStale] = useState(false);
+  useEffect(() => {
+    if (!typingInfo) return;
+    setTypingStale(false);
+    const t = setTimeout(() => setTypingStale(true), 4000);
+    return () => clearTimeout(t);
+  }, [typingInfo]);
 
   const message = isSubjectWaiting
     ? 'Players are voting on your statements…'
@@ -39,6 +49,47 @@ export default function Waiting({ gs, isSubjectWaiting = false }) {
       </div>
 
       <h2 style={{ maxWidth: '340px', lineHeight: 1.3 }}>{message}</h2>
+
+      {/* Live typing indicator — only for non-subject waiting players */}
+      {!isSubjectWaiting && (
+        <div
+          style={{
+            minHeight: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '0.88rem',
+            color: 'var(--clr-text-muted)',
+            fontStyle: 'italic',
+          }}
+        >
+          {typingInfo ? (
+            <>
+              <span style={{ color: 'var(--clr-purple)', fontStyle: 'normal', fontWeight: 700 }}>✍️</span>
+              {typingStale
+                ? `${typingInfo.nickname} is still writing…`
+                : `${typingInfo.nickname} is filling in statement ${typingInfo.fieldIndex + 1}…`
+              }
+              <span style={{ display: 'inline-flex', gap: '3px', marginLeft: '2px' }}>
+                {[0, 1, 2].map(k => (
+                  <span
+                    key={k}
+                    style={{
+                      width: '5px', height: '5px',
+                      borderRadius: '50%',
+                      background: 'var(--clr-purple)',
+                      display: 'inline-block',
+                      animation: `pulse-urgent 0.7s ease-in-out ${k * 0.18}s infinite alternate`,
+                    }}
+                  />
+                ))}
+              </span>
+            </>
+          ) : (
+            <span style={{ opacity: 0.5 }}>waiting for {subjectNickname ?? 'Subject'} to start typing…</span>
+          )}
+        </div>
+      )}
 
       {/* Category hint — shown to waiting players only, not to the subject during voting */}
       {!isSubjectWaiting && category && (

@@ -25,6 +25,8 @@ export default function Room() {
     maxRounds: 5,
     deadline: null,
     category: null,         // writing-phase theme
+    templates: null,        // 3 fill-in-the-blank template strings
+    typingInfo: null,       // { fieldIndex, charCount, nickname, ts } from subject-typing
     statements: null,       // voting phase: [{text, label}]
     revealData: null,       // reveal phase: full reveal payload
     votesIn: 0,
@@ -71,6 +73,8 @@ export default function Room() {
         maxRounds: data.maxRounds,
         deadline: data.deadline,
         category: data.category ?? null,
+        templates: data.templates ?? null,
+        typingInfo: null,
       }));
     });
 
@@ -101,12 +105,18 @@ export default function Room() {
         round: data.round,
         maxRounds: data.maxRounds,
         category: data.category ?? null,
+        templates: data.templates ?? null,
+        typingInfo: null,  // reset typing state on each phase change
         // Reset round-specific data
         statements: null,
         revealData: null,
         votesIn: 0,
         totalVoters: 0,
       }));
+    });
+
+    socket.on('subject-typing', (data) => {
+      setGameState(prev => ({ ...prev, typingInfo: data }));
     });
 
     socket.on('statements-ready', ({ statements }) => {
@@ -145,6 +155,7 @@ export default function Room() {
       socket.off('host-changed');
       socket.off('settings-updated');
       socket.off('phase-change');
+      socket.off('subject-typing');
       socket.off('statements-ready');
       socket.off('vote-update');
       socket.off('reveal');
@@ -164,8 +175,8 @@ export default function Room() {
     submitStatements(statements) {
       socket.emit('submit-statements', { roomCode: code.toUpperCase(), playerId: gameState.playerId, statements });
     },
-    submitVote(voteIndex) {
-      socket.emit('submit-vote', { roomCode: code.toUpperCase(), playerId: gameState.playerId, voteIndex });
+    submitVote(voteIndex, confidence) {
+      socket.emit('submit-vote', { roomCode: code.toUpperCase(), playerId: gameState.playerId, voteIndex, confidence });
     },
     playAgain() {
       socket.emit('play-again', { roomCode: code.toUpperCase(), playerId: gameState.playerId });

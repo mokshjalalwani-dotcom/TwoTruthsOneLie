@@ -40,6 +40,154 @@ function _pickCategory(lastCategory) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+// ─── Fill-in-the-blank templates (keyed by category name) ────────────────────
+const TEMPLATES = {
+  'Childhood': [
+    'As a kid, I once got caught ___',
+    'I was obsessed with ___ growing up',
+    'My biggest childhood fear was ___',
+    'I broke ___ and blamed it on someone else',
+    'My embarrassing childhood nickname was ___',
+    'I genuinely believed ___ was true until I was way too old',
+  ],
+  'Travel': [
+    'I once got completely lost in ___',
+    'The strangest thing I ate on a trip was ___',
+    "I've been to ___ but I'd never go back",
+    'I once missed a flight/bus because of ___',
+    'My most chaotic travel story happened in ___',
+    'I traveled to ___ completely on a whim',
+  ],
+  'Food': [
+    'I secretly hate ___, even though everyone loves it',
+    'The weirdest thing I have ever eaten was ___',
+    'I once ate ___ every single day for over a week',
+    "I'm surprisingly good at cooking ___",
+    'My unpopular food opinion is that ___ is overrated',
+    'My comfort food that would surprise people is ___',
+  ],
+  'A job or school story': [
+    'I once lied to my boss or teacher about ___',
+    'My most embarrassing work or school moment was ___',
+    'I got caught ___ at work or school',
+    'My first ever job was ___ and I lasted ___',
+    'I once accidentally sent a message about ___ to the wrong person',
+    'I quit or almost quit a job or class because of ___',
+  ],
+  'An embarrassing moment': [
+    'I once waved at someone who was not waving at me, then ___',
+    'I called my ___ the wrong name at the worst possible moment',
+    'I showed up to the wrong ___ and only noticed when ___',
+    'I sent a message meant for ___ to the wrong person',
+    'I tripped in public and the worst part was ___',
+    'I accidentally said ___ out loud when I meant to think it',
+  ],
+  'A skill or talent': [
+    'I can ___ faster than most people I know',
+    "I've secretly been practising ___ for years",
+    'People are always shocked I can ___',
+    'I taught myself to ___ purely out of boredom',
+    'My most useless hidden talent is ___',
+    'I used to compete in ___ when I was younger',
+  ],
+  'A weird habit or fear': [
+    'I cannot sleep unless ___',
+    'I always ___ before leaving the house, even when late',
+    "I'm irrationally terrified of ___",
+    'I have a rule about ___ that confuses everyone I know',
+    'I refuse to ___ no matter what',
+    'Every time I ___, I have to repeat it a specific number of times',
+  ],
+  'Family': [
+    'My family has a tradition of ___ that nobody else does',
+    'The most chaotic family gathering involved ___',
+    'A family rule growing up was ___, and I hated it',
+    "My family's unspoken topic we never discuss is ___",
+    'My family nickname is ___ and there is a whole story behind it',
+    'One thing my family always argues about is ___',
+  ],
+  'Firsts (first job, first pet, etc.)': [
+    'My first job was ___ and I lasted ___',
+    'The first time I tried ___, I immediately regretted it',
+    'My first pet was ___ and it ___',
+    'The first time I traveled alone, I ___',
+    'My first concert or big event was ___ and it was ___',
+    'The very first time I drove a car, I ___',
+  ],
+  'A close call or lucky moment': [
+    'I narrowly avoided ___ by pure accident',
+    'Pure luck saved me when ___',
+    'I accidentally won or got ___ without even trying',
+    'I almost missed ___ because of ___',
+    'I should not have survived the time I ___',
+    'At the very last second, ___ saved me',
+  ],
+  'Sports or fitness': [
+    'I once trained for ___ but quit because ___',
+    'My most embarrassing sports moment was ___',
+    "I'm surprisingly good at ___ despite never practising",
+    'I once competed in ___ and ___',
+    'I injured myself doing ___ and had to explain it to a doctor',
+    'My secret fitness ritual that sounds ridiculous is ___',
+  ],
+  "Something you've never told anyone": [
+    "I've secretly always wanted to ___",
+    'Nobody knows I used to ___',
+    "I've been pretending to like ___ for years",
+    'I once got away with ___ and never confessed',
+    'I still feel guilty about the time I ___',
+    'Something I have never admitted out loud is that I ___',
+  ],
+  "A place you've lived": [
+    'My strangest neighbour once ___',
+    'The weirdest thing about living in ___ was ___',
+    'I moved to ___ on a complete whim because ___',
+    'My most chaotic living situation involved ___',
+    'I once had a roommate who ___',
+    'Living somewhere for the first time changed how I feel about ___',
+  ],
+  'An unlikely friendship': [
+    'My closest friend and I met because of ___',
+    'I became friends with someone I initially disliked over ___',
+    'I befriended a complete stranger on ___ and we still talk',
+    'My oddest friendship started when we bonded over ___',
+    'The person I least expected to like turned out to ___',
+    "I'm surprisingly close with someone my friends call ___, which confuses them",
+  ],
+  'Money or a bad purchase': [
+    'I once spent way too much money on ___ and completely regret it',
+    'My worst financial decision ever was ___',
+    'I impulse-bought ___ at 2am and ___',
+    "I still own ___ that I've literally never used",
+    'I got scammed into buying ___ once',
+    'The most money I have ever blown in one go was on ___',
+  ],
+};
+
+const GENERAL_TEMPLATES = [
+  "One thing I've never admitted is that I ___",
+  'People always assume I ___, but it is not actually true',
+  'I once got away with ___',
+  'My most embarrassing moment ever involved ___',
+  'Something I am secretly proud of is ___',
+  "I have been pretending to enjoy ___ for years",
+  'Something weird happened to me involving ___',
+  'I once convinced someone that ___',
+];
+
+/** Randomly pick 3 templates for the current category (no repeats within the 3). */
+function _pickTemplates(category) {
+  const pool = (TEMPLATES[category] ?? []).length >= 3
+    ? [...(TEMPLATES[category] ?? [])]
+    : [...(TEMPLATES[category] ?? []), ...GENERAL_TEMPLATES];
+  // Fisher-Yates shuffle
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, 3);
+}
+
 // ─── In-memory store ──────────────────────────────────────────────────────────
 /** @type {Map<string, RoomState>} */
 const rooms = new Map();
@@ -71,10 +219,11 @@ function createRoom(hostSocketId, nickname) {
     }],
     phase: 'lobby',
     currentSubjectId: null,
-    currentCategory: null,  // theme shown to Subject during writing phase
+    currentCategory: null,   // theme shown during writing phase
+    currentTemplates: null,  // 3 fill-in-the-blank templates for this round
     statements: null,   // [{ text, isLie }]
     shuffleMap: null,   // shuffleMap[shuffledIndex] = originalIndex
-    votes: {},          // playerId → shuffledIndex they voted as the lie
+    votes: {},          // playerId → { voteIndex, confidence: 'sure'|'risky' }
     round: 0,
     maxRounds: 5,
     phaseDeadline: null,
@@ -176,7 +325,8 @@ function _beginWritingPhase(room, io) {
   room.votes = {};
   room.phase = 'writing';
   room.phaseDeadline = Date.now() + WRITING_TIMEOUT_MS;
-  room.currentCategory = _pickCategory(room.currentCategory);
+  room.currentCategory  = _pickCategory(room.currentCategory);
+  room.currentTemplates = _pickTemplates(room.currentCategory);
 
   io.to(room.code).emit('phase-change', {
     phase: 'writing',
@@ -186,6 +336,7 @@ function _beginWritingPhase(room, io) {
     round: room.round,
     maxRounds: room.maxRounds,
     category: room.currentCategory,
+    templates: room.currentTemplates,
   });
 
   _clearPhaseTimer(room.code);
@@ -253,10 +404,10 @@ function _beginVotingPhase(room, io) {
   phaseTimers.set(room.code, setTimeout(() => {
     const r = rooms.get(room.code);
     if (r && r.phase === 'voting') {
-      // Auto-fill missing votes with a random shuffled index
+      // Auto-fill missing votes with a random shuffled index (risky = no penalty if wrong)
       r.players.filter(p => p.connected && p.id !== r.currentSubjectId).forEach(p => {
         if (r.votes[p.id] === undefined) {
-          r.votes[p.id] = Math.floor(Math.random() * 3);
+          r.votes[p.id] = { voteIndex: Math.floor(Math.random() * 3), confidence: 'risky' };
         }
       });
       _beginRevealPhase(r, io);
@@ -265,14 +416,15 @@ function _beginVotingPhase(room, io) {
 }
 
 // ─── Phase: voting ────────────────────────────────────────────────────────────
-function submitVote(roomCode, playerId, voteIndex, io) {
+function submitVote(roomCode, playerId, voteIndex, confidence, io) {
   const room = rooms.get(roomCode);
   if (!room) return { error: 'Room not found.' };
   if (room.phase !== 'voting') return { error: 'Not in voting phase.' };
   if (room.currentSubjectId === playerId) return { error: 'The Subject cannot vote.' };
   if (![0, 1, 2].includes(voteIndex)) return { error: 'Invalid vote index.' };
+  if (!['sure', 'risky'].includes(confidence)) return { error: 'Invalid confidence level.' };
 
-  room.votes[playerId] = voteIndex;
+  room.votes[playerId] = { voteIndex, confidence };
 
   // Count eligible voters (connected non-subject)
   const eligible = room.players.filter(p => p.connected && p.id !== room.currentSubjectId);
@@ -308,17 +460,24 @@ function _beginRevealPhase(room, io) {
 
   let subjectFooledCount = 0;
 
-  Object.entries(room.votes).forEach(([voterId, votedShuffledIndex]) => {
+  Object.entries(room.votes).forEach(([voterId, vote]) => {
     const voter = room.players.find(p => p.id === voterId);
     if (!voter) return;
 
+    const { voteIndex: votedShuffledIndex, confidence } = vote;
+
     if (votedShuffledIndex === shuffledLieIndex) {
-      // Correct — voter gets a point
-      voter.score += 1;
-      scoreDelta[voterId] = (scoreDelta[voterId] || 0) + 1;
+      // Correct — Sure: +2, Risky: +1
+      const points = confidence === 'sure' ? 2 : 1;
+      voter.score += points;
+      scoreDelta[voterId] = (scoreDelta[voterId] || 0) + points;
     } else {
-      // Wrong — subject fooled them
-      subjectFooledCount++;
+      // Wrong — Sure: -1, Risky: 0
+      if (confidence === 'sure') {
+        voter.score = Math.max(0, voter.score - 1); // floor at 0
+        scoreDelta[voterId] = (scoreDelta[voterId] || 0) - 1;
+      }
+      subjectFooledCount++; // subject gets fool-point regardless of confidence
     }
   });
 
@@ -384,6 +543,7 @@ function resetGame(roomCode, requesterId, io) {
   room.round = 0;
   room.currentSubjectId = null;
   room.currentCategory = null;
+  room.currentTemplates = null;
   room.statements = null;
   room.shuffleMap = null;
   room.votes = {};
