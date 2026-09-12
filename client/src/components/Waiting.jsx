@@ -6,7 +6,7 @@ import Countdown from './Countdown.jsx';
  *  - The subject player during voting phase (isSubjectWaiting=true)
  */
 export default function Waiting({ gs, isSubjectWaiting = false }) {
-  const { subjectNickname, deadline, round, maxRounds } = gs;
+  const { subjectNickname, deadline, round, maxRounds, category } = gs;
 
   const message = isSubjectWaiting
     ? 'Players are voting on your statements…'
@@ -39,6 +39,28 @@ export default function Waiting({ gs, isSubjectWaiting = false }) {
       </div>
 
       <h2 style={{ maxWidth: '340px', lineHeight: 1.3 }}>{message}</h2>
+
+      {/* Category hint — shown to waiting players only, not to the subject during voting */}
+      {!isSubjectWaiting && category && (
+        <div
+          className="animate-scale-in"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '10px 18px',
+            borderRadius: 'var(--r-full)',
+            background: 'rgba(45,212,191,0.08)',
+            border: '1px solid rgba(45,212,191,0.25)',
+          }}
+        >
+          <span style={{ fontSize: '1rem' }}>💡</span>
+          <span style={{ fontSize: '0.9rem', color: 'var(--clr-text-muted)' }}>
+            Writing about:{' '}
+            <strong style={{ color: 'var(--clr-teal)', fontWeight: 800 }}>{category}</strong>
+          </span>
+        </div>
+      )}
 
       {/* Countdown */}
       <div className="card" style={{ padding: '20px 40px', textAlign: 'center' }}>

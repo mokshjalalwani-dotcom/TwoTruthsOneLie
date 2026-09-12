@@ -16,6 +16,30 @@ const GRACE_PERIOD_MS    = 30_000;    // reconnect grace window
 
 const LABELS = ['A', 'B', 'C'];
 
+const CATEGORIES = [
+  'Childhood',
+  'Travel',
+  'Food',
+  'A job or school story',
+  'An embarrassing moment',
+  'A skill or talent',
+  'A weird habit or fear',
+  'Family',
+  'Firsts (first job, first pet, etc.)',
+  'A close call or lucky moment',
+  'Sports or fitness',
+  'Something you\'ve never told anyone',
+  'A place you\'ve lived',
+  'An unlikely friendship',
+  'Money or a bad purchase',
+];
+
+/** Pick a random category, avoiding the one used last round. */
+function _pickCategory(lastCategory) {
+  const pool = CATEGORIES.filter(c => c !== lastCategory);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // ─── In-memory store ──────────────────────────────────────────────────────────
 /** @type {Map<string, RoomState>} */
 const rooms = new Map();
@@ -47,6 +71,7 @@ function createRoom(hostSocketId, nickname) {
     }],
     phase: 'lobby',
     currentSubjectId: null,
+    currentCategory: null,  // theme shown to Subject during writing phase
     statements: null,   // [{ text, isLie }]
     shuffleMap: null,   // shuffleMap[shuffledIndex] = originalIndex
     votes: {},          // playerId → shuffledIndex they voted as the lie
@@ -151,6 +176,7 @@ function _beginWritingPhase(room, io) {
   room.votes = {};
   room.phase = 'writing';
   room.phaseDeadline = Date.now() + WRITING_TIMEOUT_MS;
+  room.currentCategory = _pickCategory(room.currentCategory);
 
   io.to(room.code).emit('phase-change', {
     phase: 'writing',
@@ -159,6 +185,7 @@ function _beginWritingPhase(room, io) {
     deadline: room.phaseDeadline,
     round: room.round,
     maxRounds: room.maxRounds,
+    category: room.currentCategory,
   });
 
   _clearPhaseTimer(room.code);
@@ -356,6 +383,7 @@ function resetGame(roomCode, requesterId, io) {
   room.phase = 'lobby';
   room.round = 0;
   room.currentSubjectId = null;
+  room.currentCategory = null;
   room.statements = null;
   room.shuffleMap = null;
   room.votes = {};

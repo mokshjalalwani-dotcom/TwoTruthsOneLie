@@ -24,6 +24,7 @@ export default function Room() {
     round: 0,
     maxRounds: 5,
     deadline: null,
+    category: null,         // writing-phase theme
     statements: null,       // voting phase: [{text, label}]
     revealData: null,       // reveal phase: full reveal payload
     votesIn: 0,
@@ -69,6 +70,7 @@ export default function Room() {
         round: data.round,
         maxRounds: data.maxRounds,
         deadline: data.deadline,
+        category: data.category ?? null,
       }));
     });
 
@@ -98,6 +100,7 @@ export default function Room() {
         deadline: data.deadline,
         round: data.round,
         maxRounds: data.maxRounds,
+        category: data.category ?? null,
         // Reset round-specific data
         statements: null,
         revealData: null,

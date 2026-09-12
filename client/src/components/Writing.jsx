@@ -4,7 +4,7 @@ import Countdown from './Countdown.jsx';
 const EMPTY = { text: '', isLie: false };
 
 export default function Writing({ gs, actions }) {
-  const { deadline, round, maxRounds } = gs;
+  const { deadline, round, maxRounds, category } = gs;
 
   const [statements, setStatements] = useState([
     { ...EMPTY },
@@ -57,6 +57,37 @@ export default function Writing({ gs, actions }) {
           <p className="text-xs text-muted">left</p>
         </div>
       </div>
+
+      {/* Category badge */}
+      {category && (
+        <div
+          className="animate-scale-in"
+          style={{
+            margin: '16px 0 8px',
+            padding: '14px 20px',
+            borderRadius: 'var(--r-md)',
+            background: 'rgba(45,212,191,0.08)',
+            border: '1px solid rgba(45,212,191,0.3)',
+            boxShadow: '0 0 24px rgba(45,212,191,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <span style={{ fontSize: '1.4rem' }}>💡</span>
+          <div>
+            <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--clr-teal)', marginBottom: '2px' }}>
+              This round's theme
+            </p>
+            <p style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--clr-text)' }}>
+              {category}
+            </p>
+            <p style={{ fontSize: '0.78rem', color: 'var(--clr-text-muted)', marginTop: '2px' }}>
+              Use this as inspiration — or write about anything you like.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="divider" />
 
