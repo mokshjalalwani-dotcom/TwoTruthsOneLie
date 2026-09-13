@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import socket from '../socket.js';
-import Lobby     from '../components/Lobby.jsx';
-import Writing   from '../components/Writing.jsx';
-import Waiting   from '../components/Waiting.jsx';
-import Voting    from '../components/Voting.jsx';
-import Reveal    from '../components/Reveal.jsx';
-import GameOver  from '../components/GameOver.jsx';
-import Scoreboard from '../components/Scoreboard.jsx';
-import GroupChat  from '../components/GroupChat.jsx';
-import VideoCall  from '../components/VideoCall.jsx';
+import Lobby       from '../components/Lobby.jsx';
+import Writing     from '../components/Writing.jsx';
+import Waiting     from '../components/Waiting.jsx';
+import Voting      from '../components/Voting.jsx';
+import Reveal      from '../components/Reveal.jsx';
+import GameOver    from '../components/GameOver.jsx';
+import Scoreboard  from '../components/Scoreboard.jsx';
+import LiveToolbar from '../components/LiveToolbar.jsx';
 
 export default function Room() {
   const { code } = useParams();
@@ -236,9 +235,9 @@ export default function Room() {
     if (phase === 'lobby')   return <Lobby   gs={gameState} actions={actions} isHost={isHost} />;
     if (phase === 'writing') return isSubject
       ? <Writing  gs={gameState} actions={actions} />
-      : <Waiting  gs={gameState} chatMessages={chatMessages} sendChat={actions.sendChat} myPlayerId={gameState.playerId} />;
+      : <Waiting  gs={gameState} />;
     if (phase === 'voting')  return isSubject
-      ? <Waiting  gs={gameState} isSubjectWaiting chatMessages={chatMessages} sendChat={actions.sendChat} myPlayerId={gameState.playerId} />
+      ? <Waiting  gs={gameState} isSubjectWaiting />
       : <Voting   gs={gameState} actions={actions} />;
     if (phase === 'reveal')  return <Reveal   gs={gameState} actions={actions} isHost={isHost} isSubject={isSubject} />;
     if (phase === 'gameover') return <GameOver gs={gameState} actions={actions} isHost={isHost} />;
@@ -247,8 +246,8 @@ export default function Room() {
   }
 
   // ─── Layout ────────────────────────────────────────────────────
-  const showSidebar    = !['lobby', 'connecting'].includes(gameState.phase);
-  const showLiveTools  = !['lobby', 'connecting', 'gameover'].includes(gameState.phase);
+  const showSidebar   = !['lobby', 'connecting'].includes(gameState.phase);
+  const showLiveTools = !['lobby', 'connecting', 'gameover'].includes(gameState.phase);
 
   return (
     <div className="page">
@@ -289,20 +288,14 @@ export default function Room() {
         )}
       </div>
 
-      {/* Global chat & video — shown during active game phases (writing player gets chat too) */}
-      {showLiveTools && gameState.phase === 'writing' && isSubject && (
-        <GroupChat
+      {/* Unified floating toolbar: Chat + Video — shown during all active game phases */}
+      {showLiveTools && (
+        <LiveToolbar
+          playerId={gameState.playerId}
+          players={gameState.players}
+          peerIds={peerIds}
           messages={chatMessages}
           onSend={actions.sendChat}
-          myPlayerId={gameState.playerId}
-          floating
-        />
-      )}
-
-      {showLiveTools && (
-        <VideoCall
-          playerId={gameState.playerId}
-          peerIds={peerIds}
           onCallReady={actions.callReady}
           onCallLeave={actions.callLeave}
         />

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import Countdown from './Countdown.jsx';
-import GroupChat from './GroupChat.jsx';
+
 
 /**
  * Shown to:
  *  - Non-subject players during writing phase (with GroupChat embedded)
  *  - The subject player during voting phase (isSubjectWaiting=true, with GroupChat embedded)
  */
-export default function Waiting({ gs, isSubjectWaiting = false, chatMessages = [], sendChat, myPlayerId }) {
+export default function Waiting({ gs, isSubjectWaiting = false }) {
   const { subjectNickname, deadline, round, maxRounds, category, typingInfo } = gs;
 
   // After 4 s of no typing events, fall back to a generic message
@@ -131,22 +131,14 @@ export default function Waiting({ gs, isSubjectWaiting = false, chatMessages = [
         </div>
       </div>
 
-      {/* Group Chat — embedded below the waiting content */}
-      <div>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '8px',
-          marginBottom: '10px', justifyContent: 'center',
-        }}>
-          <span style={{ fontSize: '1rem' }}>🎉</span>
-          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--clr-text-muted)' }}>
-            Chat while you wait!
-          </span>
-        </div>
-        <GroupChat
-          messages={chatMessages}
-          onSend={sendChat}
-          myPlayerId={myPlayerId}
-        />
+      {/* Hint that chat is available in the bottom-right toolbar */}
+      <div style={{
+        textAlign: 'center',
+        color: 'var(--clr-text-dim)',
+        fontSize: '0.82rem',
+        marginTop: '8px',
+      }}>
+        💬 Use the chat in the bottom-right corner to talk with your team!
       </div>
     </div>
   );
