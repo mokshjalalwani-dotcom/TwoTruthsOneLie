@@ -175,6 +175,151 @@ const GENERAL_TEMPLATES = [
   'I once convinced someone that ___',
 ];
 
+// ─── Hinglish Templates (keyed by same category names) ───────────────────────
+const HINGLISH_TEMPLATES = {
+  'Childhood': [
+    'Bachpan mein ek baar main ___ karte pakda gaya tha',
+    'Main ___ ka bahut bada fan tha growing up mein',
+    'Mera sabse bada bachpan ka darr ___ tha',
+    'Maine ___ toda aur kisi aur pe blame kar diya',
+    'Mera embarrassing bachpan ka nickname ___ tha',
+    'Main genuinely believe karta tha ki ___ sach hai, kaafi lambe time tak',
+  ],
+  'Travel': [
+    'Main ek baar ___ mein completely kho gaya tha',
+    'Trip pe sabse strange cheez jo maine khayi woh ___ tha',
+    'Main ___ gaya hoon but wapas kabhi nahi jaaunga',
+    'Ek baar maine flight/bus miss ki ___ ki wajah se',
+    'Meri sabse chaotic travel story ___ mein hua tha',
+    'Main ___ ekdum whim pe chala gaya tha',
+  ],
+  'Food': [
+    'Main secretly ___ se nafrat karta hoon, chahe sabko pasand ho',
+    'Sabse weird cheez jo maine kabhi khayi woh ___ tha',
+    'Maine ek haafte se zyada roz ___ khaya tha',
+    'Main surprisingly acha ___ bana leta hoon',
+    'Mera unpopular food opinion hai ki ___ overrated hai',
+    'Mera comfort food jo logo ko surprise karta hai woh ___ hai',
+  ],
+  'A job or school story': [
+    'Maine apne boss ya teacher se ___ ke baare mein jhooth bola tha',
+    'Mera sabse embarrassing kaam ya school moment ___ tha',
+    'Main ___ karte kaam ya school mein pakda gaya tha',
+    'Meri pehli job ___ thi aur main wahan ___ tak raha',
+    'Maine galti se ___ ke baare mein message galat insaan ko bhej diya',
+    'Maine job ya class ___ ki wajah se chodi ya chorne waala tha',
+  ],
+  'An embarrassing moment': [
+    'Maine ek baar kisi ko wave kiya jo mujhe wave nahi kar raha tha, phir ___',
+    'Maine apne ___ ko galat naam se bulaya bilkul galat waqt pe',
+    'Main galat ___ pe pahunch gaya aur tabhi pata chala jab ___',
+    'Maine ___ ke liye bheja message galat insaan ko bhej diya',
+    'Main public mein gira aur sabse bura part yeh tha ki ___',
+    'Maine accidentally ___ zor se bol diya jab dimaag mein rakhna tha',
+  ],
+  'A skill or talent': [
+    'Main ___ zyaadatar logon se tez kar sakta hoon',
+    'Main chhuppe se kaafi saalo se ___ practice kar raha hoon',
+    'Log hamesha shock hote hain jab dekhte hain ki main ___ kar sakta hoon',
+    'Maine khud se ___ sirf boredom mein seekha tha',
+    'Mera sabse bekar hidden talent ___ hai',
+    'Main chhota tha tab ___ mein compete karta tha',
+  ],
+  'A weird habit or fear': [
+    'Mujhe neend nahi aati jab tak ___',
+    'Main hamesha ghar se nikalne se pehle ___ karta hoon, chahe der ho jaaye',
+    'Mujhe ___ se bewajaah darr lagta hai',
+    'Mere paas ___ ke baare mein ek rule hai jo sabko confuse karta hai',
+    'Main kuch bhi ho ___ kabhi nahi karunga',
+    'Jab bhi main ___ karta hoon, ek specific baar mujhe dobarana karna padta hai',
+  ],
+  'Family': [
+    'Mere family mein ___ ki tradition hai jo aur koi nahi karta',
+    'Sabse chaotic family gathering mein ___ hua tha',
+    'Bachpan mein ek family rule ___ tha, aur main use hate karta tha',
+    'Hamaari family ka unspoken topic jo hum kabhi discuss nahi karte woh ___ hai',
+    'Mera family nickname ___ hai aur uske peeche ek poori kahaani hai',
+    'Ek cheez jiske baare mein meri family hamesha ladhti hai woh ___ hai',
+  ],
+  'Firsts (first job, first pet, etc.)': [
+    'Meri pehli job ___ thi aur main wahan ___ tak raha',
+    'Jab pehli baar maine ___ try kiya, turant pachtaya',
+    'Mera pehla pet ___ tha aur usne ___',
+    'Jab pehli baar main akele travel kiya, tab maine ___',
+    'Mera pehla concert ya bada event ___ tha aur woh ___ tha',
+    'Jab pehli baar maine gaadi chalai, maine ___',
+  ],
+  'A close call or lucky moment': [
+    'Main ___ se bach gaya ek pure accident ki wajah se',
+    'Pure luck ne meri jaan bachi jab ___',
+    'Main accidentally ___ jeeta bina kuch kiye',
+    'Main ___ miss karne waala tha ___ ki wajah se',
+    'Mujhe us waqt survive nahi karna chahiye tha jab maine ___',
+    'Aakhri second mein ___ ne mujhe bacha liya',
+  ],
+  'Sports or fitness': [
+    'Maine ek baar ___ ki training ki lekin ___ ki wajah se chod diya',
+    'Mera sabse embarrassing sports wala moment ___ tha',
+    'Main surprisingly acha hoon ___ mein, bina practice ke bhi',
+    'Maine ek baar ___ mein compete kiya aur ___',
+    'Maine ___ karte waqt injury li aur doctor ko explain karna pada',
+    'Mera secret fitness ritual jo sunne mein ridiculous lagta hai woh ___ hai',
+  ],
+  "Something you've never told anyone": [
+    'Main chhuppe se hamesha ___ karna chahta tha',
+    'Kisi ko nahi pata ki main ___ karta tha',
+    'Main kaafi saalo se ___ enjoy karne ka natak kar raha hoon',
+    'Maine ek baar ___ kar diya aur kabhi confess nahi kiya',
+    'Mujhe abhi bhi guilt hota hai us waqt ka jab maine ___',
+    'Ek cheez jo maine kabhi zor se nahi bol ki woh yeh hai ki main ___',
+  ],
+  "A place you've lived": [
+    'Mera ek strange padosi tha jo ek baar ___',
+    '___ mein rehne ki sabse weird baat ___ thi',
+    'Main ___ mein ek complete whim pe shift ho gaya kyunki ___',
+    'Meri sabse chaotic living situation mein ___ tha',
+    'Mere ek roommate tha jo ___',
+    'Pehli baar kisi jagah rehna mujhe ___ ke baare mein alag feel karatha hai',
+  ],
+  'An unlikely friendship': [
+    'Mera sabse kareeb dost aur main ___ ki wajah se mile the',
+    'Maine ek aise insaan se dosti ki jise main pehle pasand nahi karta tha, ___ ki wajah se',
+    'Maine ___ pe ek dum stranger se dosti ki aur hum abhi bhi baat karte hain',
+    'Meri sabse weird dosti tab shuru hui jab hum ___ ke wajah se bond hue',
+    'Jis insaan se mujhe sabse kam umeed thi, woh ___',
+    "Main surprisingly karib hoon ___ se jise mere dost ___ bolte hain, jo unhe confuse karta hai",
+  ],
+  'Money or a bad purchase': [
+    'Maine ek baar bahut zyada paisa ___ pe kharch kiya aur bahut pachtaya',
+    'Mera sabse bura financial decision ___ tha',
+    'Maine raat 2 baje ___ impulse buy kiya aur ___',
+    'Mere paas abhi bhi ___ hai jo maine literally kabhi use nahi kiya',
+    'Maine ek baar ___ khareedne ke liye scam ho gaya tha',
+    'Sabse zyada paisa jo maine ek baar mein udaya woh ___ pe tha',
+  ],
+};
+
+const HINGLISH_GENERAL_TEMPLATES = [
+  'Ek cheez jo maine kabhi admit nahi ki woh yeh hai ki main ___',
+  'Log hamesha assume karte hain ki main ___, lekin yeh sach nahi hai',
+  'Maine ek baar ___ karke bach gaya',
+  'Mera sabse embarrassing moment ___ se related tha',
+  'Ek cheez jis pe main secretly proud hoon woh ___ hai',
+  'Main kaafi saalo se ___ enjoy karne ka natak kar raha hoon',
+  'Mujhe ek baar ek weird situation mein ___ se involve hona pada',
+  'Maine ek baar kisi ko convince kiya ki ___',
+];
+
+/** Get all templates for a given category and language. */
+function _getAllTemplates(category, lang) {
+  if (lang === 'hi') {
+    const pool = HINGLISH_TEMPLATES[category] ?? [];
+    return pool.length >= 3 ? pool : [...pool, ...HINGLISH_GENERAL_TEMPLATES];
+  }
+  const pool = TEMPLATES[category] ?? [];
+  return pool.length >= 3 ? pool : [...pool, ...GENERAL_TEMPLATES];
+}
+
 /** Randomly pick 3 templates for the current category (no repeats within the 3). */
 function _pickTemplates(category) {
   const pool = (TEMPLATES[category] ?? []).length >= 3
@@ -186,6 +331,14 @@ function _pickTemplates(category) {
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
   return pool.slice(0, 3);
+}
+
+/** Build the allTemplates payload sent to the client: { en: string[], hi: string[] } */
+function _buildAllTemplates(category) {
+  return {
+    en: _getAllTemplates(category, 'en'),
+    hi: _getAllTemplates(category, 'hi'),
+  };
 }
 
 // ─── In-memory store ──────────────────────────────────────────────────────────
@@ -337,6 +490,7 @@ function _beginWritingPhase(room, io) {
     maxRounds: room.maxRounds,
     category: room.currentCategory,
     templates: room.currentTemplates,
+    allTemplates: _buildAllTemplates(room.currentCategory),
   });
 
   _clearPhaseTimer(room.code);
@@ -676,4 +830,5 @@ module.exports = {
   getRoom,
   getRoomBySocketId,
   _publicPlayers,
+  _getAllTemplates,
 };

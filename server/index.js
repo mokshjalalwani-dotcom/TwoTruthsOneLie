@@ -16,6 +16,7 @@ const {
   handleDisconnect,
   getRoom,
   _publicPlayers,
+  _getAllTemplates,
 } = require('./gameLogic');
 
 // ─── Environment ──────────────────────────────────────────────────────────────
@@ -158,6 +159,9 @@ io.on('connection', (socket) => {
       hostId: room.hostId,
       category: room.currentCategory,
       templates: room.currentTemplates,
+      allTemplates: room.currentCategory
+        ? { en: _getAllTemplates(room.currentCategory, 'en'), hi: _getAllTemplates(room.currentCategory, 'hi') }
+        : null,
     });
 
     socket.to(room.code).emit('player-joined', { players: _publicPlayers(room) });
@@ -278,6 +282,55 @@ io.on('connection', (socket) => {
     const result = resetGame(roomCode, playerId, io);
     if (result.error) return socket.emit('error', { message: result.error });
     console.log(`[game]       ${roomCode} reset for replay`);
+  });
+
+  // ── Chat message (relay to room) ─────────────────────────────────────────
+  socket.on('chat-message', (payload) => {
+    const roomCode = sanitizeRoomCode(payload?.roomCode);
+    const playerId = sanitizePlayerId(payload?.playerId);
+    const text     = typeof payload?.text === 'string' ? payload.text.trim().slice(0, 200) : '';
+    if (!roomCode || !playerId || !text) return;
+
+    const room = getRoom(roomCode);
+    if (!room) return;
+    const player = room.players.find(p => p.id === playerId);
+    if (!player) return;
+
+    io.to(roomCode).emit('chat-message', {
+      playerId,
+      nickname: player.nickname,
+      text,
+      ts: Date.now(),
+    });
+  });
+
+  // ── PeerJS call signaling ─────────────────────────────────────────────────
+  // Track who is ready to call (per room): roomCode → Set<playerId>
+  socket.on('call-ready', (payload) => {
+    const roomCode = sanitizeRoomCode(payload?.roomCode);
+    const playerId = sanitizePlayerId(payload?.playerId);
+    if (!roomCode || !playerId) return;
+
+    const room = getRoom(roomCode);
+    if (!room) return;
+
+    if (!room._callReady) room._callReady = new Set();
+    room._callReady.add(playerId);
+
+    // Broadcast updated peer list to everyone in the room
+    io.to(roomCode).emit('peer-list', { peerIds: [...room._callReady] });
+  });
+
+  socket.on('call-leave', (payload) => {
+    const roomCode = sanitizeRoomCode(payload?.roomCode);
+    const playerId = sanitizePlayerId(payload?.playerId);
+    if (!roomCode || !playerId) return;
+
+    const room = getRoom(roomCode);
+    if (!room || !room._callReady) return;
+
+    room._callReady.delete(playerId);
+    io.to(roomCode).emit('peer-list', { peerIds: [...room._callReady] });
   });
 
   // ── Disconnect ───────────────────────────────────────────────────────────

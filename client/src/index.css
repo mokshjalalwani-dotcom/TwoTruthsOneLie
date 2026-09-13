@@ -542,3 +542,24 @@ input[type='range']::-moz-range-thumb {
 .justify-center { justify-content: center; }
 .justify-between { justify-content: space-between; }
 .w-full { width: 100%; }
+.text-right { text-align: right; }
+
+/* ─── Native select dark-mode fix ───────────────────────────── */
+select option {
+  background: #12122a;
+  color: #f0f0ff;
+}
+select:focus {
+  outline: none;
+}
+
+/* ─── Chat panel scrollbar ───────────────────────────────────── */
+.chat-scroll::-webkit-scrollbar { width: 4px; }
+.chat-scroll::-webkit-scrollbar-track { background: transparent; }
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(139,92,246,0.3);
+  border-radius: 999px;
+}
+
+/* ─── Video tiles ────────────────────────────────────────────── */
+video { display: block; }

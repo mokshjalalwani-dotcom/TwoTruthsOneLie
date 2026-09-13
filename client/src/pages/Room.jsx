@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import socket from '../socket.js';
-import Lobby    from '../components/Lobby.jsx';
-import Writing  from '../components/Writing.jsx';
-import Waiting  from '../components/Waiting.jsx';
-import Voting   from '../components/Voting.jsx';
-import Reveal   from '../components/Reveal.jsx';
-import GameOver from '../components/GameOver.jsx';
+import Lobby     from '../components/Lobby.jsx';
+import Writing   from '../components/Writing.jsx';
+import Waiting   from '../components/Waiting.jsx';
+import Voting    from '../components/Voting.jsx';
+import Reveal    from '../components/Reveal.jsx';
+import GameOver  from '../components/GameOver.jsx';
 import Scoreboard from '../components/Scoreboard.jsx';
+import GroupChat  from '../components/GroupChat.jsx';
+import VideoCall  from '../components/VideoCall.jsx';
 
 export default function Room() {
   const { code } = useParams();
@@ -24,17 +26,20 @@ export default function Room() {
     round: 0,
     maxRounds: 5,
     deadline: null,
-    category: null,         // writing-phase theme
-    templates: null,        // 3 fill-in-the-blank template strings
-    typingInfo: null,       // { fieldIndex, charCount, nickname, ts } from subject-typing
-    statements: null,       // voting phase: [{text, label}]
-    revealData: null,       // reveal phase: full reveal payload
+    category: null,
+    templates: null,
+    allTemplates: null,   // { en: string[], hi: string[] }
+    typingInfo: null,
+    statements: null,
+    revealData: null,
     votesIn: 0,
     totalVoters: 0,
   });
 
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
+  const [chatMessages, setChatMessages]   = useState([]);
+  const [peerIds, setPeerIds]             = useState([]);
 
   // ─── Helpers ───────────────────────────────────────────────────
   const showToast = useCallback((msg) => {
@@ -52,12 +57,10 @@ export default function Room() {
     const savedPlayerId = localStorage.getItem('tt_playerId');
     const savedCode     = localStorage.getItem('tt_roomCode');
 
-    // If we have saved credentials for THIS room, attempt rejoin
     if (savedPlayerId && savedCode === code.toUpperCase()) {
       socket.emit('rejoin-room', { roomCode: code.toUpperCase(), playerId: savedPlayerId });
     }
 
-    // ── Incoming events ──────────────────────────────────────────
     socket.on('rejoined', (data) => {
       localStorage.setItem('tt_playerId', data.playerId);
       localStorage.setItem('tt_roomCode', data.roomCode);
@@ -74,6 +77,7 @@ export default function Room() {
         deadline: data.deadline,
         category: data.category ?? null,
         templates: data.templates ?? null,
+        allTemplates: data.allTemplates ?? null,
         typingInfo: null,
       }));
     });
@@ -106,8 +110,8 @@ export default function Room() {
         maxRounds: data.maxRounds,
         category: data.category ?? null,
         templates: data.templates ?? null,
-        typingInfo: null,  // reset typing state on each phase change
-        // Reset round-specific data
+        allTemplates: data.allTemplates ?? null,
+        typingInfo: null,
         statements: null,
         revealData: null,
         votesIn: 0,
@@ -142,10 +146,19 @@ export default function Room() {
 
     socket.on('error', ({ message }) => {
       setError(message);
-      // If blocked from joining (game in progress), go home
       if (message.includes('already in progress')) {
         setTimeout(() => navigate('/'), 2500);
       }
+    });
+
+    // ─── Chat ────────────────────────────────────────────────────
+    socket.on('chat-message', (msg) => {
+      setChatMessages(prev => [...prev.slice(-99), msg]);
+    });
+
+    // ─── PeerJS peer list ────────────────────────────────────────
+    socket.on('peer-list', ({ peerIds: ids }) => {
+      setPeerIds(ids);
     });
 
     return () => {
@@ -161,6 +174,8 @@ export default function Room() {
       socket.off('reveal');
       socket.off('game-over');
       socket.off('error');
+      socket.off('chat-message');
+      socket.off('peer-list');
     };
   }, [code, navigate, showToast]);
 
@@ -190,6 +205,19 @@ export default function Room() {
       socket.disconnect();
       navigate('/');
     },
+    sendChat(text) {
+      socket.emit('chat-message', {
+        roomCode: code.toUpperCase(),
+        playerId: gameState.playerId,
+        text,
+      });
+    },
+    callReady() {
+      socket.emit('call-ready', { roomCode: code.toUpperCase(), playerId: gameState.playerId });
+    },
+    callLeave() {
+      socket.emit('call-leave', { roomCode: code.toUpperCase(), playerId: gameState.playerId });
+    },
   };
 
   // ─── Render active phase ───────────────────────────────────────
@@ -208,9 +236,9 @@ export default function Room() {
     if (phase === 'lobby')   return <Lobby   gs={gameState} actions={actions} isHost={isHost} />;
     if (phase === 'writing') return isSubject
       ? <Writing  gs={gameState} actions={actions} />
-      : <Waiting  gs={gameState} />;
+      : <Waiting  gs={gameState} chatMessages={chatMessages} sendChat={actions.sendChat} myPlayerId={gameState.playerId} />;
     if (phase === 'voting')  return isSubject
-      ? <Waiting  gs={gameState} isSubjectWaiting />
+      ? <Waiting  gs={gameState} isSubjectWaiting chatMessages={chatMessages} sendChat={actions.sendChat} myPlayerId={gameState.playerId} />
       : <Voting   gs={gameState} actions={actions} />;
     if (phase === 'reveal')  return <Reveal   gs={gameState} actions={actions} isHost={isHost} isSubject={isSubject} />;
     if (phase === 'gameover') return <GameOver gs={gameState} actions={actions} isHost={isHost} />;
@@ -219,7 +247,8 @@ export default function Room() {
   }
 
   // ─── Layout ────────────────────────────────────────────────────
-  const showSidebar = !['lobby', 'connecting'].includes(gameState.phase);
+  const showSidebar    = !['lobby', 'connecting'].includes(gameState.phase);
+  const showLiveTools  = !['lobby', 'connecting', 'gameover'].includes(gameState.phase);
 
   return (
     <div className="page">
@@ -259,6 +288,25 @@ export default function Room() {
           </aside>
         )}
       </div>
+
+      {/* Global chat & video — shown during active game phases (writing player gets chat too) */}
+      {showLiveTools && gameState.phase === 'writing' && isSubject && (
+        <GroupChat
+          messages={chatMessages}
+          onSend={actions.sendChat}
+          myPlayerId={gameState.playerId}
+          floating
+        />
+      )}
+
+      {showLiveTools && (
+        <VideoCall
+          playerId={gameState.playerId}
+          peerIds={peerIds}
+          onCallReady={actions.callReady}
+          onCallLeave={actions.callLeave}
+        />
+      )}
     </div>
   );
 }
