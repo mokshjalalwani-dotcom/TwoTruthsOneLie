@@ -536,7 +536,7 @@ function VideoPanel({ playerId, myNickname, players, peerIds, onCallReady, onCal
     if (myVideoRef.current && myStream) {
       myVideoRef.current.srcObject = myStream;
     }
-  }, [myStream]);
+  }, [myStream, inCall]);
 
   useEffect(() => {
     if (!inCall || !peerRef.current || !myStream) return;
